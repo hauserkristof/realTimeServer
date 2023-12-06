@@ -1,8 +1,20 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { NTPClient } from 'ntpclient';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-	const { name = "World" } = req.query;
+export default async function handler(_req: VercelRequest, res: VercelResponse) {
+    const clientRequestTime = Date.now();
+    let type = 'NTP';
+    let time = await new NTPClient().getNetworkTime() ?? null;
+    if(!time) {
+        time = new Date();
+        type = 'server';
+    }
+    const clientResponseTime = Date.now();
+
+    const roundTripTime = clientResponseTime - clientRequestTime;
 	return res.json({
-		message: `Hello ${name}!`,
+        time: time,
+        type: type,
+        roundTripTime: roundTripTime
 	});
 }
